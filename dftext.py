@@ -32,6 +32,12 @@ class Parser:
             file = open(file)
         return file.read()
 
+    def index_scramble(self, text):
+        text = list(text)
+        for i, ch in enumerate(text):
+            text[i] = chr(255 - (i % 5) - ord(ch))
+        return ''.join(text)
+
     def decode(self, in_text, index=False):
         decompressed = ''
         chunk_id = 1
@@ -60,6 +66,8 @@ class Parser:
             if record_length != record_length_2:
                 raise ParserDecodeError('Record lengths do not match')
             record, decompressed = decompressed[:record_length], decompressed[record_length:]
+            if index:
+                record = self.index_scramble(record)
             records.append(record)
         return '\n'.join(records) + '\n'
 
@@ -68,7 +76,8 @@ class Parser:
 
     def encode(self, in_text, index=False):
         records = in_text.rstrip('\n').split('\n')
-        out_text = ''.join([struct.pack('<LH', len(record), len(record)) + record
+        out_text = ''.join([struct.pack('<LH', len(record), len(record))
+                            + (self.index_scramble(record) if index else record)
                             for record in records])
         out_text = struct.pack('<L', len(records)) + out_text
         out_text = zlib.compress(out_text)
