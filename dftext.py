@@ -1,6 +1,14 @@
 """ DF compressed text file manipulation """
 
 import argparse, struct, sys, zlib
+
+class CompatError(Exception): pass
+class ParserError(Exception): pass
+class ParserDecodeError(Exception): pass
+
+PY_VERSION = sys.version_info[0]
+if PY_VERSION != 2:
+    raise CompatError('Python %i not supported' % PY_VERSION)
 class ArgParser:
     def __init__(self):
         self.arg_parser = argparse.ArgumentParser()
@@ -16,9 +24,6 @@ class ArgParser:
     def parse_args(self):
         return self.arg_parser.parse_args()
 
-class ParserError(Exception): pass
-class ParserDecodeError(Exception): pass
-
 class Parser:
     def read_file(self, file):
         if file is None:
@@ -27,8 +32,7 @@ class Parser:
             file = open(file)
         return file.read()
 
-    def decode(self, in_file, index=False):
-        in_text = self.read_file(in_file)
+    def decode(self, in_text, index=False):
         decompressed = ''
         chunk_id = 1
         while in_text:
@@ -59,8 +63,10 @@ class Parser:
             records.append(record)
         return '\n'.join(records) + '\n'
 
-    def encode(self, in_file, index=False):
-        in_text = self.read_file(in_file)
+    def decode_file(self, in_file, *args, **kwargs):
+        return self.decode(self.read_file(in_file), *args, **kwargs)
+
+    def encode(self, in_text, index=False):
         records = in_text.rstrip('\n').split('\n')
         out_text = ''.join([struct.pack('<LH', len(record), len(record)) + record
                             for record in records])
@@ -68,3 +74,6 @@ class Parser:
         out_text = zlib.compress(out_text)
         out_text = struct.pack('<L', len(out_text)) + out_text
         return out_text
+
+    def encode_file(self, in_file, *args, **kwargs):
+        return self.encode(self.read_file(in_file), *args, **kwargs)
