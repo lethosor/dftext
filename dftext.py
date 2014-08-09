@@ -20,12 +20,15 @@ class ParserError(Exception): pass
 class ParserDecodeError(Exception): pass
 
 class Parser:
+    def read_file(self, file):
+        if file is None:
+            file = sys.stdin
+        elif isinstance(file, str):
+            file = open(file)
+        return file.read()
+
     def decode(self, in_file, index=False):
-        if in_file is None:
-            in_file = sys.stdin
-        elif isinstance(in_file, str):
-            in_file = open(in_file)
-        in_text = in_file.read()
+        in_text = self.read_file(in_file)
         decompressed = ''
         chunk_id = 1
         while in_text:
@@ -54,5 +57,14 @@ class Parser:
                 raise ParserDecodeError('Record lengths do not match')
             record, decompressed = decompressed[:record_length], decompressed[record_length:]
             records.append(record)
-        return '\n'.join(records) + '\n\n'
-    
+        return '\n'.join(records) + '\n'
+
+    def encode(self, in_file, index=False):
+        in_text = self.read_file(in_file)
+        records = in_text.rstrip('\n').split('\n')
+        out_text = ''.join([struct.pack('<LH', len(record), len(record)) + record
+                            for record in records])
+        out_text = struct.pack('<L', len(records)) + out_text
+        out_text = zlib.compress(out_text)
+        out_text = struct.pack('<L', len(out_text)) + out_text
+        return out_text
