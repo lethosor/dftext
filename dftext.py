@@ -21,6 +21,11 @@ class ArgParser:
             help='Use data/index-style encryption',
             action='store_true',
         )
+        self.arg_parser.add_argument('--level',
+            help='Compression level (0-9, with 0 being the lowest)',
+            type=int,
+            default=zlib.Z_DEFAULT_COMPRESSION,
+        )
     def parse_args(self):
         return self.arg_parser.parse_args()
 
@@ -74,13 +79,13 @@ class Parser:
     def decode_file(self, in_file, *args, **kwargs):
         return self.decode(self.read_file(in_file), *args, **kwargs)
 
-    def encode(self, in_text, index=False):
+    def encode(self, in_text, index=False, level=zlib.Z_DEFAULT_COMPRESSION):
         records = in_text.rstrip('\n').split('\n')
         out_text = ''.join([struct.pack('<LH', len(record), len(record))
                             + (self.index_scramble(record) if index else record)
                             for record in records])
         out_text = struct.pack('<L', len(records)) + out_text
-        out_text = zlib.compress(out_text)
+        out_text = zlib.compress(out_text, level)
         out_text = struct.pack('<L', len(out_text)) + out_text
         return out_text
 
