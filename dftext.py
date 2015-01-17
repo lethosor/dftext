@@ -26,6 +26,10 @@ class ArgParser:
             type=int,
             default=zlib.Z_DEFAULT_COMPRESSION,
         )
+        self.arg_parser.add_argument('--debug',
+            help='Enable debug output',
+            action='store_true',
+        )
     def parse_args(self):
         return self.arg_parser.parse_args()
 
