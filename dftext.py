@@ -4,7 +4,7 @@ import argparse, struct, sys, zlib
 
 class CompatError(Exception): pass
 class ParserError(Exception): pass
-class ParserDecodeError(Exception): pass
+class ParserDecodeError(ParserError): pass
 
 PY_VERSION = sys.version_info[0]
 if PY_VERSION != 2:
