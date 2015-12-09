@@ -67,7 +67,7 @@ def sync(path):
     else:
         old_size = os.stat(txt_path).st_size
         try:
-            with open(path, 'w') as f:
+            with open(path, 'wb') as f:
                 f.write(parser.encode_file(txt_path))
         except dftext.ParserError as e:
             raise SyncError('Could not encode file: %s' % e)

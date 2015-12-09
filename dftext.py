@@ -38,7 +38,7 @@ class Parser:
         if file is None:
             file = sys.stdin
         elif isinstance(file, str):
-            file = open(file)
+            file = open(file, 'rb')
         return file.read()
 
     def index_scramble(self, text):
